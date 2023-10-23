@@ -92,10 +92,10 @@ elif authentication_status:   # se o username e a senha estiverem corretos, segu
         st.markdown('''
             ##### Têm dúvidas sobre como utilizar a automação? Verifique o tutorial ao lado...👉
         ''')
-    # with col4:
-    #     video_file = open('teste.mp4', 'rb')
-    #     video_bytes = video_file.read()
-    #     st.video(video_bytes)
+    with col4:
+        video_file = open('Tutorial-VV.mp4', 'rb')
+        video_bytes = video_file.read()
+        st.video(video_bytes)
     
     st.divider()
     st.write('\n')

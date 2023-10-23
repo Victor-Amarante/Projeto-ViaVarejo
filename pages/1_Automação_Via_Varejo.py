@@ -7,6 +7,9 @@ from datetime import date, time, datetime, timedelta
 import base64
 from io import StringIO, BytesIO
 from utils import bg_page
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 
 def generate_excel_download_link(df):
     # Credit Excel: https://discuss.streamlit.io/t/how-to-add-a-download-excel-csv-function-to-a-button/4474/5
@@ -79,37 +82,67 @@ footer:before {
 }
 </style>
 """
+
 st.markdown(hide_menu, unsafe_allow_html=True)
 
-st.markdown("## Tratamento Automático da Planilha")
-st.markdown('#### Para que a automação funcione, insira abaixo as bases necessárias para os PROCVs.')
+# --- USER AUTHENTICATION ---
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
 
-st.divider()
-st.warning("Todas as bases devem estar no formato Excel (.xlsx)")   # informar ao usuario que todos os arquivos precisam ser arquivos excel
-arquivo1 = st.file_uploader("Importe a BASE PRINCIPAL", type="xlsx")    # base principal
-arquivo2 = st.file_uploader("Importe a BASE SUBTIPO TAREFAS", type="xlsx")  # base subTipo tarefas
-arquivo3 = st.file_uploader("Importe a BASE ITAPEVA", type="xlsx")  # base itapeva
-arquivo4 = st.file_uploader("Importe a BASE IMPOSSIBILIDADE E CANCELAMENTO", type="xlsx")   # base impossibilidade
+# buscando todas as informacoes necessarias de autenticacao do usuario como o username, name e senha
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+    config['preauthorized']
+)
 
-if (arquivo1 is not None) and (arquivo2 is not None) and (arquivo3 is not None) and (arquivo4 is not None):
-    df_base_geral = pd.read_excel(arquivo1)
-    df_base_geral = clean_names(df_base_geral)
+# pegando informacoes especificas de cada usuario para validacao
+name, authentication_status, username = authenticator.login('Login', 'main')
+
+if authentication_status == False:   # se o nome do usuario ou a senha estiverem incorretos, mandar mensagem de erro
+    st.error('Usuário/senha incorretos')
+
+elif authentication_status == None:   # se nao tiver o username ou a senha, mandar mensagem de alerta
+    st.warning('Por favor inserir informações de usuário e senha')
+
+elif authentication_status:   # se o username e a senha estiverem corretos, seguir para entrar no sistema
+    with st.sidebar:
+        st.title(f"Bem-vindo(a), {name.split()[0] + ' ' + name.split()[1]}!")
+        authenticator.logout("Logout", "sidebar")
     
-    df_subtipo_tarefas = pd.read_excel(arquivo2)
-    df_subtipo_tarefas = clean_names(df_subtipo_tarefas)
-    
-    df_itapeva = pd.read_excel(arquivo3)
-    df_itapeva = clean_names(df_itapeva)
-    
-    df_impossibilidade = pd.read_excel(arquivo4)
-    df_impossibilidade = clean_names(df_impossibilidade)
-    
-    st.success("As bases foram carregadas!")
-    
-    botao_tratamento_automatico = st.button("Iniciar o procedimento")
-    if botao_tratamento_automatico:
-        base_tratada = tratamento_automatico(df_base_geral=df_base_geral, df_subtipo_tarefas=df_subtipo_tarefas,
-                                             df_itapeva=df_itapeva, df_impossibilidade=df_impossibilidade)
-        st.success("O processo foi finalizado! A base está disponível para download abaixo")
-        generate_excel_download_link(base_tratada)
-    
+    # Titulo da pagina
+    st.markdown('# Programa QCA - Via Varejo')
+    st.markdown("## Tratamento Automático da Planilha")
+    st.markdown('#### Para que a automação funcione, insira abaixo as bases necessárias para os PROCVs.')
+
+    st.divider()
+    st.warning("Todas as bases devem estar no formato Excel (.xlsx)")   # informar ao usuario que todos os arquivos precisam ser arquivos excel
+    arquivo1 = st.file_uploader("Importe a BASE PRINCIPAL", type="xlsx")    # base principal
+    arquivo2 = st.file_uploader("Importe a BASE SUBTIPO TAREFAS", type="xlsx")  # base subTipo tarefas
+    arquivo3 = st.file_uploader("Importe a BASE ITAPEVA", type="xlsx")  # base itapeva
+    arquivo4 = st.file_uploader("Importe a BASE IMPOSSIBILIDADE E CANCELAMENTO", type="xlsx")   # base impossibilidade
+
+    if (arquivo1 is not None) and (arquivo2 is not None) and (arquivo3 is not None) and (arquivo4 is not None):
+        df_base_geral = pd.read_excel(arquivo1)
+        df_base_geral = clean_names(df_base_geral)
+        
+        df_subtipo_tarefas = pd.read_excel(arquivo2)
+        df_subtipo_tarefas = clean_names(df_subtipo_tarefas)
+        
+        df_itapeva = pd.read_excel(arquivo3)
+        df_itapeva = clean_names(df_itapeva)
+        
+        df_impossibilidade = pd.read_excel(arquivo4)
+        df_impossibilidade = clean_names(df_impossibilidade)
+        
+        st.success("As bases foram carregadas!")
+        
+        botao_tratamento_automatico = st.button("Iniciar o procedimento")
+        if botao_tratamento_automatico:
+            base_tratada = tratamento_automatico(df_base_geral=df_base_geral, df_subtipo_tarefas=df_subtipo_tarefas,
+                                                df_itapeva=df_itapeva, df_impossibilidade=df_impossibilidade)
+            st.success("O processo foi finalizado! A base está disponível para download abaixo")
+            generate_excel_download_link(base_tratada)
+        
