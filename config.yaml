@@ -1,0 +1,15 @@
+credentials:
+  usernames:
+    gabi_vv:
+      name: Maria Gabriela Mendes Vaz Manso
+      password: $2b$12$9JIrUW3WQuDVlvQ8DKZQ4.pXDHOq4azZscNH1jzBPuzN7O7Gj8R.G # To be replaced with hashed password
+    luana_vv:
+      name: Luana Rafaela Mendes de Lima
+      password: $2b$12$nGe8E7f2Sicz5AFzoHbUAenA134ULGAAgRBlOGHZk0LHRHTznu/hC # To be replaced with hashed password
+cookie:
+  expiry_days: 30
+  key: qca123 # Must be string
+  name: qca_databoost
+preauthorized:
+  emails:
+  - victoramarante00@gmail.com
