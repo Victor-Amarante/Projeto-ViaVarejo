@@ -10,6 +10,7 @@ from utils import bg_page
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
+import openpyxl
 
 def generate_excel_download_link(df):
     # Credit Excel: https://discuss.streamlit.io/t/how-to-add-a-download-excel-csv-function-to-a-button/4474/5
@@ -125,16 +126,16 @@ elif authentication_status:   # se o username e a senha estiverem corretos, segu
     arquivo4 = st.file_uploader("Importe a BASE IMPOSSIBILIDADE E CANCELAMENTO", type="xlsx")   # base impossibilidade
 
     if (arquivo1 is not None) and (arquivo2 is not None) and (arquivo3 is not None) and (arquivo4 is not None):
-        df_base_geral = pd.read_excel(arquivo1)
+        df_base_geral = pd.read_excel(arquivo1, engine="openpyxl")
         df_base_geral = clean_names(df_base_geral)
         
-        df_subtipo_tarefas = pd.read_excel(arquivo2)
+        df_subtipo_tarefas = pd.read_excel(arquivo2, engine="openpyxl")
         df_subtipo_tarefas = clean_names(df_subtipo_tarefas)
         
-        df_itapeva = pd.read_excel(arquivo3)
+        df_itapeva = pd.read_excel(arquivo3, engine="openpyxl")
         df_itapeva = clean_names(df_itapeva)
         
-        df_impossibilidade = pd.read_excel(arquivo4)
+        df_impossibilidade = pd.read_excel(arquivo4, engine="openpyxl")
         df_impossibilidade = clean_names(df_impossibilidade)
         
         st.success("As bases foram carregadas!")
